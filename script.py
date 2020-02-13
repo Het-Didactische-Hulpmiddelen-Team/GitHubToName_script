@@ -24,9 +24,8 @@ def clone_repos():
     org_input = int(org_input)
     selected_org = orgs[org_input]
 
-    # request where to clone repos /Users/rubenclaes/Desktop/
-    # path_input = input("Where to clone repos? (absolute path, ending on /):")
-    path_input = '/Users/rubenclaes/Desktop/'
+    # request where to clone repos
+    path_input = input("Where to clone repos? (absolute path, ending on /):")
     dir_name = selected_org["login"]
 
     # create main folder
@@ -44,6 +43,7 @@ def clone_repos():
     for repo in repos:
         repo_url = repo["html_url"]
         repo_url += '.git'
+        print(repo_url)
 
         # get contributors
         get_repo_contributors_link = 'https://api.github.com/repos/{}/collaborators'.format(repo['full_name'])
@@ -54,12 +54,13 @@ def clone_repos():
         directory_name = ''
         for repoContributor in repo_contributors:
             if repoContributor['permissions']['admin']:
-                directory_name += repoContributor['login'] + '_'
-
-        # directory_name = directory_name[:-1]
+                contributor_name = github_to_name(repoContributor['login']).replace(" ", "")
+                if len(contributor_name) > 0 and repoContributor['login'].strip() != username.strip():
+                    directory_name += contributor_name + "_"
+        directory_name = directory_name[:-1]
 
         # clone repo
-        # os.system("git clone {} {}{}/{}/{}".format(repo_url, path_input, dir_name, directory_name, repo['name']))
+        os.system("git clone {} {}{}/{}/{}".format(repo_url, path_input, dir_name, directory_name, repo['name']))
         counter += 1
 # end cloning -------------------------------
 
@@ -69,7 +70,17 @@ def github_to_name(github):
     github_to_name_response = requests.get('http://server.arne.tech:80/user/{}'.format(github),
                                            auth=HTTPBasicAuth(username, password))
     github_to_name_string = github_to_name_response.json()
-    return github_to_name_string[0]
+    if len(github_to_name_string) == 1:
+        return github_to_name_string[0][0]
+    elif len(github_to_name_string) == 0:
+        return ""
+    else:
+        result = ""
+        for element in github_to_name_string:
+            if len(element[0]) > 0:
+                result += element[0] + "_"
+        result = result[:-1]
+        return result
 
 
 #   student name to github account name translation
@@ -79,7 +90,10 @@ def name_to_github(name):
     name_to_github_response = requests.get('http://server.arne.tech:80/name/{}'.format(name_new),
                                            auth=HTTPBasicAuth(username, password))
     name_to_github_string = name_to_github_response.json()
-    return name_to_github_string['github']
+    if len(name_to_github_string) == 0:
+        return ""
+    else:
+        return name_to_github_string[0][1].strip('github.com/')
 
 
 # startup parameters
@@ -96,10 +110,8 @@ github_username = options.github_username
 student_name = options.student_name
 
 # GitHub login (fallback)
-# username = input("GitHub username:")
-# password = input("GitHub password:")
-username = 'SwordleihsUcll'
-
+username = input("GitHub username:")
+password = input("GitHub password:")
 
 if github_username is not None:
     print(github_to_name(github_username))
