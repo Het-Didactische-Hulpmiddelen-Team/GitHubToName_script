@@ -1,102 +1,110 @@
 import os
-import mysql.connector
-from mysql.connector import Error
 import requests
 from requests.auth import HTTPBasicAuth
 import json
 import sys
-import getpass
+from optparse import OptionParser
 
-# database connection (not working)
-''' 
-try:
-    connection = mysql.connector.connect(host='193.191.177.132',
-                                         port='3306',
-                                         database='dht',
-                                         user='dht',
-                                         password='mvghetdhtmvghetdht')
-    if connection.is_connected():
-        db_Info = connection.get_server_info()
-        print("Connected to MySQL Server version ", db_Info)
-        cursor = connection.cursor()
-        cursor.execute("select database();")
-        record = cursor.fetchone()
-        print("You're connected to database: ", record)
-except Error as e:
-    print("Error while connecting to MySQL", e)
-finally:
-    if connection.is_connected():
-        cursor = cursor.close()
-        connection.close()
-        print("MySQL connection is closed")
-'''
 
-# GitHub login
-username = input("GitHub username:")
-password = input("GitHub password:")
+# repository cloning function
+def clone_repos():
+    # request all organisations
+    response_orgs = requests.get('https://api.github.com/user/orgs', auth=HTTPBasicAuth(username, password))
+    orgs = response_orgs.json()
 
-# dummy data input
-mappings = open("userMappings", "r")
-line = mappings.readline()
+    # request which organisation
+    counter = 0
+    for org in orgs:
+        organisation_name = org["login"]
+        item = "{}. {}".format(counter, organisation_name)
+        print(item)
+        counter += 1
 
-convertedMappings = {}
-while line:
-    mapping = line.split()
-    name = '{} {}'.format(mapping[0], mapping[1])
-    link = mapping[2]
-    convertedMappings.update({name: link})
-    line = mappings.readline()
+    org_input = input("Which organisation? (give number):")
+    org_input = int(org_input)
+    selected_org = orgs[org_input]
 
-# request all organisations
-responseOrgs = requests.get('https://api.github.com/user/orgs', auth=HTTPBasicAuth(username, password))
-orgs = responseOrgs.json()
+    # request where to clone repos /Users/rubenclaes/Desktop/
+    # path_input = input("Where to clone repos? (absolute path, ending on /):")
+    path_input = '/Users/rubenclaes/Desktop/'
+    dir_name = selected_org["login"]
 
-# request which organisation
-counter = 0
-for org in orgs:
-    organisationName = org["login"]
-    item = "{}. {}".format(counter, organisationName)
-    print(item)
-    counter += 1
+    # create main folder
+    try:
+        os.mkdir(path_input + dir_name)
+    except FileExistsError:
+        print("There already exists a directory with this name!")
 
-orgInput = input("Which organisation? (give number):")
-orgInput = int(orgInput)
-selectedOrg = orgs[orgInput]
+    # get repositories in organisation
+    get_repos_link = 'https://api.github.com/orgs/{}/repos'.format(selected_org["login"])
+    response_repos = requests.get(get_repos_link, auth=HTTPBasicAuth(username, password))
+    repos = response_repos.json()
 
-# request where to clone repos /Users/rubenclaes/Desktop/
-pathInput = input("Where to clone repos? (absolute path, ending on /):")
-dirName = selectedOrg["login"]
+    counter = 0
+    for repo in repos:
+        repo_url = repo["html_url"]
+        repo_url += '.git'
 
-# create main folder
-try:
-    os.mkdir(pathInput + dirName)
-except FileExistsError:
-    print("There already exists a directory with this name!")
+        # get contributors
+        get_repo_contributors_link = 'https://api.github.com/repos/{}/collaborators'.format(repo['full_name'])
+        get_repo_contributors = requests.get(get_repo_contributors_link, auth=HTTPBasicAuth(username, password))
+        repo_contributors = get_repo_contributors.json()
 
-# get repositories in organisation
-getReposLink = 'https://api.github.com/orgs/{}/repos'.format(selectedOrg["login"])
-responseRepos = requests.get(getReposLink, auth=HTTPBasicAuth(username, password))
-repos = responseRepos.json()
+        # create directory name
+        directory_name = ''
+        for repoContributor in repo_contributors:
+            if repoContributor['permissions']['admin']:
+                directory_name += repoContributor['login'] + '_'
 
-counter = 0
-for repo in repos:
-    repoUrl = repo["html_url"]
-    repoUrl += '.git'
+        # directory_name = directory_name[:-1]
 
-    # get contributors
-    getRepoContributorsLink = 'https://api.github.com/repos/{}/collaborators'.format(repo['full_name'])
-    getRepoContributors = requests.get(getRepoContributorsLink, auth=HTTPBasicAuth(username, password))
-    repoContributors = getRepoContributors.json()
+        # clone repo
+        # os.system("git clone {} {}{}/{}/{}".format(repo_url, path_input, dir_name, directory_name, repo['name']))
+        counter += 1
+# end cloning -------------------------------
 
-    # create directory name
-    directoryName = ''
-    for repoContributor in repoContributors:
-        if repoContributor['permissions']['admin']:
-            directoryName += repoContributor['login'] + '_'
 
-    directoryName = directoryName[:-1]
+#   github account name to student name translation
+def github_to_name(github):
+    github_to_name_response = requests.get('http://server.arne.tech:80/user/{}'.format(github),
+                                           auth=HTTPBasicAuth(username, password))
+    github_to_name_string = github_to_name_response.json()
+    return github_to_name_string[0]
 
-    # clone repo
-    os.system("git clone {} {}{}/{}/{}".format(repoUrl, pathInput, dirName, directoryName, repo['name']))
-    counter += 1
 
+#   student name to github account name translation
+def name_to_github(name):
+    name_split = name.split("_")
+    name_new = "{} {}".format(name_split[0], name_split[1])
+    name_to_github_response = requests.get('http://server.arne.tech:80/name/{}'.format(name_new),
+                                           auth=HTTPBasicAuth(username, password))
+    name_to_github_string = name_to_github_response.json()
+    return name_to_github_string['github']
+
+
+# startup parameters
+parser = OptionParser()
+parser.add_option("-c", "--clone", action="store_true", dest="clone", default=True,
+                  help="activates cloning mode (default)")
+parser.add_option("-t", "--translate", dest="github_username",
+                  help="translate github account name to student name")
+parser.add_option("-r", "--reverse_translate", dest="student_name",
+                  help="translate student name to github account name (e.g. Firstname_Lastname)")
+(options, args) = parser.parse_args()
+clone = options.clone
+github_username = options.github_username
+student_name = options.student_name
+
+# GitHub login (fallback)
+# username = input("GitHub username:")
+# password = input("GitHub password:")
+username = 'SwordleihsUcll'
+
+
+if github_username is not None:
+    print(github_to_name(github_username))
+else:
+    if student_name is not None:
+        print(name_to_github(student_name))
+    else:
+        clone_repos()
