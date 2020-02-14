@@ -9,7 +9,8 @@ from optparse import OptionParser
 # repository cloning function
 def clone_repos():
     # request all organisations
-    response_orgs = requests.get('https://api.github.com/user/orgs', auth=HTTPBasicAuth(username, password))
+    # response_orgs = requests.get('https://api.github.com/user/orgs', auth=HTTPBasicAuth(username, password))
+    response_orgs = requests.get('https://api.github.com/user/orgs', headers=headers)
     orgs = response_orgs.json()
 
     # request which organisation
@@ -23,10 +24,12 @@ def clone_repos():
     org_input = input("Which organisation? (give number):")
     org_input = int(org_input)
     selected_org = orgs[org_input]
-
-    # request where to clone repos
-    path_input = input("Where to clone repos? (absolute path, ending on /):")
     dir_name = selected_org["login"]
+
+    # request where to clone repos | PUT DEFAULT PATH HERE #############################################################
+    path_input = input("Where to clone repos? (absolute path, ending on /):")
+    # path_input = ''
+    # ##################################################################################################################
 
     # create main folder
     try:
@@ -36,18 +39,19 @@ def clone_repos():
 
     # get repositories in organisation
     get_repos_link = 'https://api.github.com/orgs/{}/repos'.format(selected_org["login"])
-    response_repos = requests.get(get_repos_link, auth=HTTPBasicAuth(username, password))
+    # response_repos = requests.get(get_repos_link, auth=HTTPBasicAuth(username, password))
+    response_repos = requests.get(get_repos_link, headers=headers)
     repos = response_repos.json()
 
     counter = 0
     for repo in repos:
         repo_url = repo["html_url"]
         repo_url += '.git'
-        print(repo_url)
 
         # get contributors
         get_repo_contributors_link = 'https://api.github.com/repos/{}/collaborators'.format(repo['full_name'])
-        get_repo_contributors = requests.get(get_repo_contributors_link, auth=HTTPBasicAuth(username, password))
+        # get_repo_contributors = requests.get(get_repo_contributors_link, auth=HTTPBasicAuth(username, password))
+        get_repo_contributors = requests.get(get_repo_contributors_link, headers=headers)
         repo_contributors = get_repo_contributors.json()
 
         # create directory name
@@ -60,15 +64,16 @@ def clone_repos():
         directory_name = directory_name[:-1]
 
         # clone repo
+        # print("git clone {} {}{}/{}/{}".format(repo_url, path_input, dir_name, directory_name, repo['name']))
         os.system("git clone {} {}{}/{}/{}".format(repo_url, path_input, dir_name, directory_name, repo['name']))
         counter += 1
-# end cloning -------------------------------
 
 
 #   github account name to student name translation
 def github_to_name(github):
-    github_to_name_response = requests.get('http://server.arne.tech:80/user/{}'.format(github),
-                                           auth=HTTPBasicAuth(username, password))
+    # github_to_name_response = requests.get('http://server.arne.tech:80/user/{}'.format(github),
+    #                                       auth=HTTPBasicAuth(username, password))
+    github_to_name_response = requests.get('http://server.arne.tech:80/user/{}'.format(github), headers=headers)
     github_to_name_string = github_to_name_response.json()
     if len(github_to_name_string) == 1:
         return github_to_name_string[0][0]
@@ -87,13 +92,14 @@ def github_to_name(github):
 def name_to_github(name):
     name_split = name.split("_")
     name_new = "{} {}".format(name_split[0], name_split[1])
-    name_to_github_response = requests.get('http://server.arne.tech:80/name/{}'.format(name_new),
-                                           auth=HTTPBasicAuth(username, password))
+    # name_to_github_response = requests.get('http://server.arne.tech:80/name/{}'.format(name_new),
+    #                                       auth=HTTPBasicAuth(username, password))
+    name_to_github_response = requests.get('http://server.arne.tech:80/name/{}'.format(name_new), headers=headers)
     name_to_github_string = name_to_github_response.json()
     if len(name_to_github_string) == 0:
         return ""
     else:
-        return name_to_github_string[0][1].strip('github.com/')
+        return name_to_github_string[0][1][11:]
 
 
 # startup parameters
@@ -109,9 +115,12 @@ clone = options.clone
 github_username = options.github_username
 student_name = options.student_name
 
-# GitHub login (fallback)
-username = input("GitHub username:")
-password = input("GitHub password:")
+# GitHub login (fallback) LOGIN CREDENTIALS HERE #######################################################################
+# username = input("GitHub username:")
+# password = input("GitHub password:") # DEPRECATED!
+username = ''
+headers = {'Authorization': 'token '}
+# ######################################################################################################################
 
 if github_username is not None:
     print(github_to_name(github_username))
@@ -120,3 +129,9 @@ else:
         print(name_to_github(student_name))
     else:
         clone_repos()
+
+# vragen
+# Voornaam achternaam schijden door underscore of gewoon spatie?
+# clonen goed? mappen structuur enzo
+# soms andere lectoren mee in organisatie?
+# meerdere repos per leerling?
