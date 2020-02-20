@@ -27,7 +27,7 @@ def github_to_name():
             return result
     else:
         result = ""
-        if github_username in name_mappings:
+        if github_username.lower() in name_mappings:
             result += "{}_".format(name_mappings.get(github_username))
         result = result[:-1]
         return result
@@ -79,7 +79,7 @@ if alternative_input is not None:
     input_file = open(alternative_input, "r")
     for line in input_file:
         split = line.split(" ")
-        name_mappings[split[0]] = '{} {}'.format(split[1], split[2].rstrip())
+        name_mappings[split[0].lower()] = '{} {}'.format(split[1], split[2].rstrip())
 
 if github_username is not None:
     print(github_to_name())

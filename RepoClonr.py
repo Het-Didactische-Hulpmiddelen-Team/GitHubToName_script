@@ -105,7 +105,7 @@ def github_to_name(github):
             return result
     else:
         result = ""
-        if github in name_mappings:
+        if github.lower() in name_mappings:
             result += "{}_".format(name_mappings.get(github))
         result = result[:-1]
         return result
@@ -134,6 +134,6 @@ if alternative_input is not None:
     input_file = open(alternative_input, "r")
     for line in input_file:
         split = line.split(" ")
-        name_mappings[split[0]] = '{} {}'.format(split[1], split[2].rstrip())
+        name_mappings[split[0].lower()] = '{} {}'.format(split[1], split[2].rstrip())
 
 clone_repos()
