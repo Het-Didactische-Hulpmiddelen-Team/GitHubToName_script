@@ -12,7 +12,6 @@ from optparse import OptionParser
 def clone_repos():
     if organisation is None:
         # request all organisations
-        # response_orgs = requests.get('https://api.github.com/user/orgs', auth=HTTPBasicAuth(username, password))
         response_orgs = requests.get('https://api.github.com/user/orgs', headers=headers)
         orgs = response_orgs.json()
 
@@ -48,7 +47,6 @@ def clone_repos():
 
     # get repositories in organisation
     get_repos_link = 'https://api.github.com/orgs/{}/repos'.format(selected_org["login"])
-    # response_repos = requests.get(get_repos_link, auth=HTTPBasicAuth(username, password))
     response_repos = requests.get(get_repos_link, headers=headers)
     repos = response_repos.json()
 
@@ -59,13 +57,11 @@ def clone_repos():
 
         # get contributors
         get_repo_contributors_link = 'https://api.github.com/repos/{}/collaborators'.format(repo['full_name'])
-        # get_repo_contributors = requests.get(get_repo_contributors_link, auth=HTTPBasicAuth(username, password))
         get_repo_contributors = requests.get(get_repo_contributors_link, headers=headers)
         repo_contributors = get_repo_contributors.json()
 
         # if there are other owners of the organisation (courses with multiple lecturers for example), put them here:
         owners = [username]
-        # owners.add("")
 
         # create directory name
         directory_name = ''
@@ -79,7 +75,6 @@ def clone_repos():
         if directory_name.strip():
             # clone repo
             print("git clone {} {}{}/{}/{}".format(repo_url, path_input, dir_name, directory_name, repo['name']))
-            # os.system("git clone {} {}{}/{}/{}".format(repo_url, path_input, dir_name, directory_name, repo['name']))
 
         counter += 1
 
@@ -87,8 +82,6 @@ def clone_repos():
 #   github account name to student name translation ####################################################################
 def github_to_name(github):
     if alternative_input is None:
-        # github_to_name_response = requests.get('http://server.arne.tech:82/user/{}'.format(github),
-        #                                       auth=HTTPBasicAuth(username, password))
         github_to_name_response = requests.get('http://server.arne.tech:82/user/{}'.format(github), headers=headers)
         github_to_name_string = github_to_name_response.json()
 
@@ -123,9 +116,7 @@ organisation = options.organisation
 path = options.path
 alternative_input = options.alternative_input
 
-# GitHub login (fallback) LOGIN CREDENTIALS HERE #######################################################################
-# username = input("GitHub username:")
-# password = input("GitHub password:") # DEPRECATED!
+# GitHub login (fallback) LOGIN CREDENTIALS HERE
 username = ''
 headers = {'Authorization': 'token '}
 
