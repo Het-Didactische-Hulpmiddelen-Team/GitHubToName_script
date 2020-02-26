@@ -8,8 +8,6 @@ from optparse import OptionParser
 #   github account name to student name translation ####################################################################
 def github_to_name():
     if alternative_input is None:
-        # github_to_name_response = requests.get('http://server.arne.tech:82/user/{}'.format(github),
-        #                                       auth=HTTPBasicAuth(username, password))
         github_to_name_response = requests.get('http://server.arne.tech:82/user/{}'.format(github_username),
                                                headers=headers)
         github_to_name_string = github_to_name_response.json()
@@ -37,8 +35,6 @@ def github_to_name():
 def name_to_github():
     if alternative_input is None:
         name_new = "{} {}".format(student_firstname, student_lastname)
-        # name_to_github_response = requests.get('http://server.arne.tech:82/name/{}'.format(name_new),
-        #                                       auth=HTTPBasicAuth(username, password))
         name_to_github_response = requests.get('http://server.arne.tech:82/name/{}'.format(name_new), headers=headers)
         name_to_github_string = name_to_github_response.json()
 
@@ -68,9 +64,7 @@ if options.student_name is not None:
     student_firstname = options.student_name[0]
     student_lastname = options.student_name[1]
 
-# GitHub login (fallback) LOGIN CREDENTIALS HERE #######################################################################
-# username = input("GitHub username:")
-# password = input("GitHub password:") # DEPRECATED!
+# GitHub login (fallback) LOGIN CREDENTIALS HERE
 username = ''
 headers = {'Authorization': 'token '}
 
