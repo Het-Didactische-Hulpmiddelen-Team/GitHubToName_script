@@ -4,7 +4,7 @@ import requests
 
 # GitHub login - LOGIN CREDENTIALS HERE ################################################################################
 username = ''
-headers = {'Authorization': 'token 2833a04f1b718018ecc37ec23677c5a817b22f4b'}
+headers = {'Authorization': 'token '}
 
 # request all organisations ############################################################################################
 response_orgs = requests.get('https://api.github.com/user/orgs', headers=headers)

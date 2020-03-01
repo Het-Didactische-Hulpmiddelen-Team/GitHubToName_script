@@ -86,7 +86,6 @@ def clone_repos():
         # if there are other owners of the organisation (courses with multiple lecturers for example), put them here: ##
         # otherwise they show up in the directory names of the repos!
         owners = [username]
-        # owners.add("")
 
         # build directory name
         directory_name = ''
@@ -157,7 +156,6 @@ parser.add_option("-i", "--alternative_input", dest="alternative_input",
 organisation = options.organisation
 path = options.path
 alternative_input = options.alternative_input
-
 
 # GitHub login - LOGIN CREDENTIALS HERE ################################################################################
 username = ''  # GitHub username
