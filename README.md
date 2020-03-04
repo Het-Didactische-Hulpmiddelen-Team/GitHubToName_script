@@ -19,8 +19,6 @@ Een Python script genaamd <code>Translatr.py</code>. Uitvoering gebeurd door vol
 * Als laatste is er de <code>-h</code> optie die hulp bied bij het gebruiken van het script.
 
 Het script zal de ingegeven GitHub-username/studenten-naam omzetten naar de overeenkomstige studenten-naam/GitHub-username en deze afdrukken in de terminal.
-
-  > Belangrijk: ook hier moet de GitHub personal access token ingegeven worden in het script.
   
 ## Clonr
 Een Python script genaamd <code>RepoClonr.py</code>. Uitvoering gebeurd door volgende zaken in te geven in een terminal:
