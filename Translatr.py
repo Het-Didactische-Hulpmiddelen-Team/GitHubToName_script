@@ -77,10 +77,6 @@ if options.student_name is not None:
     student_firstname = options.student_name[0]
     student_lastname = options.student_name[1]
 
-# GitHub login - LOGIN CREDENTIALS HERE ################################################################################
-username = ''
-headers = {'Authorization': 'token '}
-
 # alternative mappings input handled here ##############################################################################
 name_mappings = {}
 if alternative_input is not None:
